@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Back2U – CIT Lost &amp; Found</title>
+<style>
+:root{--bg:#f4f7f2;--card:#fff;--ink:#1d2a1f;--mut:#5d6b60;--line:#d9e2d6;--g:#2e7d32;--gs:#e3f2e1;--lost:#6a3fb5;--lost-s:#ece4fa;--found:#1769aa;--found-s:#dfeefa;--warn:#b45309;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#121a14;--card:#1b261e;--ink:#e8f0e9;--mut:#9db0a0;--line:#2c3b2f;--g:#6fcf75;--gs:#223a25;--lost:#b79af0;--lost-s:#2b2147;--found:#6bb6ee;--found-s:#14304a;--warn:#f0b04d}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#121a14;--card:#1b261e;--ink:#e8f0e9;--mut:#9db0a0;--line:#2c3b2f;--g:#6fcf75;--gs:#223a25;--lost:#b79af0;--lost-s:#2b2147;--found:#6bb6ee;--found-s:#14304a;--warn:#f0b04d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{max-width:480px;margin:0 auto;padding:16px 16px 40px;min-height:100vh}
+header{text-align:center;padding:12px 0 18px}
+.cit{letter-spacing:.3em;font-weight:700;color:var(--mut);font-size:13px}
+h1{margin:2px 0;font-size:34px;color:var(--g);letter-spacing:-.5px}
+.tag{color:var(--mut);font-size:14px;margin:0}
+.big{display:block;width:100%;text-align:left;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:16px;margin:0 0 12px;font:inherit;font-weight:600;font-size:17px;cursor:pointer;display:flex;align-items:center;gap:12px}
+.big small{display:block;font-weight:400;color:var(--mut);font-size:13px}
+.big .ic{font-size:26px;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;flex:none}
+.big:active{transform:scale(.98)}
+.b-lost .ic{background:var(--lost-s)}.b-found .ic{background:var(--found-s)}.b-loc .ic,.b-stat .ic{background:var(--gs)}
+.badge{margin-left:auto;background:var(--g);color:var(--bg);border-radius:99px;padding:2px 10px;font-size:13px}
+.back{background:none;border:0;color:var(--g);font:inherit;font-weight:600;cursor:pointer;padding:6px 0;margin-bottom:6px}
+h2{margin:0 0 12px;font-size:22px}
+.lost-h{color:var(--lost)}.found-h{color:var(--found)}
+label{display:block;font-weight:600;font-size:14px;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:12px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--g)}
+textarea{min-height:76px;resize:vertical}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:var(--g);color:var(--bg);border-color:var(--g)}
+.row{display:flex;gap:8px}.row>*{flex:1}
+.submit{width:100%;margin-top:20px;padding:15px;border:0;border-radius:12px;font:inherit;font-weight:700;font-size:17px;color:#fff;cursor:pointer}
+.submit.lost{background:var(--lost)}.submit.found{background:var(--found)}
+.sec{background:var(--card);border:2px solid var(--line);color:var(--ink);padding:9px 12px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin-top:6px}
+.photo{max-width:100%;border-radius:10px;margin-top:8px;max-height:180px}
+.seg{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card.lost{border-left:6px solid var(--lost)}.card.found{border-left:6px solid var(--found)}
+.card.done{opacity:.6}
+.top{display:flex;gap:12px}.top img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+.card h3{margin:0;font-size:17px}.meta{color:var(--mut);font-size:13px}
+.pill{font-size:12px;font-weight:700;border-radius:99px;padding:1px 8px;margin-right:6px}
+.pill.lost{background:var(--lost-s);color:var(--lost)}.pill.found{background:var(--found-s);color:var(--found)}
+.match{margin-top:10px;padding:10px;background:var(--gs);border-radius:10px;font-size:14px}
+.match b{color:var(--g)}
+.act{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.act a,.act button{border:2px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:9px;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
+.empty{text-align:center;color:var(--mut);padding:30px 10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:99px;font-size:14px;z-index:9;max-width:90%}
+footer{text-align:center;color:var(--mut);font-size:12px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+<script>
+const TYPES=["ID card","Wallet","Keys","Book","USB drive","Earphones","Water bottle","Phone","Bag","Other"];
+const PLACES=["Classroom","Library","Canteen","Lab","Grounds","Hostel","Parking"];
+let reports=[],view="home",filter="all",db=null,form={},toastT;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const local=()=>{try{return JSON.parse(localStorage.getItem("b2u")||"[]")}catch(e){return[]}};
+const saveLocal=()=>{try{localStorage.setItem("b2u",JSON.stringify(reports))}catch(e){}};
+
+function toast(m){clearTimeout(toastT);document.querySelector(".toast")?.remove();const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);toastT=setTimeout(()=>t.remove(),2600)}
+
+/* matching: lost vs found */
+const words=s=>String(s||"").toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);
+function score(l,f){
+  if(l.type!==f.type)return 0;
+  let s=40;
+  const a=new Set([...words(l.name),...words(l.desc)]),b=[...words(f.name),...words(f.desc)];
+  s+=Math.min(30,b.filter(w=>a.has(w)).length*10);
+  if(l.colour&&f.colour&&l.colour.trim().toLowerCase()===f.colour.trim().toLowerCase())s+=15;
+  if(l.place&&f.place&&words(l.place).some(w=>words(f.place).includes(w)))s+=15;
+  return Math.min(s,99);
+}
+const matchesFor=r=>reports.filter(o=>o.status==="open"&&o.kind!==r.kind&&(r.kind==="lost"?score(r,o):score(o,r))>=55)
+  .map(o=>({o,s:r.kind==="lost"?score(r,o):score(o,r)})).sort((a,b)=>b.s-a.s);
+
+function shrink(file){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);
+  im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;
+  c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.6))};im.onerror=rej;im.src=u})}
+
+async function add(r){
+  r.id="r"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);r.ts=Date.now();r.status="open";
+  if(db){try{await db.collection("reports").doc(r.id).set(r);return}catch(e){}}
+  reports.unshift(r);saveLocal();render();
+}
+async function patch(id,d){
+  if(db){try{await db.collection("reports").doc(id).update(d);return}catch(e){}}
+  const r=reports.find(x=>x.id===id);if(r)Object.assign(r,d);saveLocal();render();
+}
+
+function home(){
+  const open=reports.filter(r=>r.status==="open").length;
+  return `<header><div class="cit">CIT</div><h1>Back2U!</h1><p class="tag">Find • Report • Reconnect</p></header>
+  <button class="big b-lost" data-go="lost"><span class="ic">🔍</span><span>Post Lost Item<small>Tell us what you lost</small></span></button>
+  <button class="big b-found" data-go="found"><span class="ic">🎒</span><span>Post Found Item<small>Help someone get it back</small></span></button>
+  <button class="big b-loc" id="shareLoc"><span class="ic">📍</span><span>Share Location<small>Send where you are on campus</small></span></button>
+  <button class="big b-stat" data-go="status"><span class="ic">📋</span><span>Status<small>Browse reports &amp; possible matches</small></span>${open?`<span class="badge">${open}</span>`:""}</button>
+  <footer>Chennai Institute of Technology · Lost &amp; Found</footer>`;
+}
+
+function formView(kind){
+  const L=kind==="lost",f=form;
+  return `<button class="back" data-go="home">← Back</button>
+  <h2 class="${kind}-h">${L?"Post Lost Item":"Post Found Item"}</h2>
+  <label>Item type</label><select id="type"><option value="">Select…</option>${TYPES.map(t=>`<option ${f.type===t?"selected":""}>${t}</option>`).join("")}</select>
+  <label>Item name</label><input id="name" placeholder="e.g. Black leather wallet" value="${esc(f.name)}">
+  ${L?`<label>Item colour</label><input id="colour" placeholder="e.g. Black" value="${esc(f.colour)}">
+  <label>Description</label><textarea id="desc" placeholder="Brand, marks, what's inside…">${esc(f.desc)}</textarea>`
+  :`<label>Description (optional)</label><textarea id="desc" placeholder="Anything that helps identify it">${esc(f.desc)}</textarea>
+  <label>Colour (optional)</label><input id="colour" value="${esc(f.colour)}">`}
+  <label>${L?"Place lost":"Place found"}</label><input id="place" placeholder="e.g. Library, 2nd floor" value="${esc(f.place)}">
+  <div class="chips">${PLACES.map(p=>`<button type="button" class="chip" data-place="${p}">${p}</button>`).join("")}<button type="button" class="chip" id="gps">📍 Use my location</button></div>
+  ${L?`<label>Date &amp; time</label><input id="when" type="datetime-local" value="${esc(f.when)}">`:""}
+  <label>${L?"Photo (optional)":"Upload image"}</label><input id="img" type="file" accept="image/*" capture="environment">
+  ${f.img?`<img class="photo" src="${f.img}" alt="Preview">`:""}
+  <label>Contact (phone or email)</label><input id="contact" placeholder="How can they reach you?" value="${esc(f.contact)}">
+  <button class="submit ${kind}" id="submit">Submit</button>`;
+}
+
+function card(r,showMatch){
+  const m=showMatch&&r.status==="open"?matchesFor(r):[];
+  const d=new Date(r.when||r.ts).toLocaleString([],{dateStyle:"medium",timeStyle:"short"});
+  const mine=m.length?`<div class="match">✨ <b>${m.length} possible match${m.length>1?"es":""}</b>${m.slice(0,3).map(x=>`<div style="margin-top:6px">${x.s}% · <b>${esc(x.o.name)}</b> (${x.o.kind}) at ${esc(x.o.place||"unknown")} — <a href="${esc(contactHref(x.o.contact))}" style="color:inherit">${esc(x.o.contact)}</a></div>`).join("")}</div>`:"";
+  return `<div class="card ${r.kind} ${r.status==="recovered"?"done":""}">
+  <div class="top">${r.img?`<img src="${r.img}" alt="">`:""}<div><h3><span class="pill ${r.kind}">${r.kind.toUpperCase()}</span>${esc(r.name)}</h3>
+  <div class="meta">${esc(r.type)}${r.colour?" · "+esc(r.colour):""}${r.place?" · 📍 "+esc(r.place):""}<br>${d}${r.status==="recovered"?" · ✅ Recovered":""}</div></div></div>
+  ${r.desc?`<p style="margin:8px 0 0;font-size:14px">${esc(r.desc)}</p>`:""}${mine}
+  <div class="act"><a href="${esc(contactHref(r.contact))}">Contact ${esc(r.contact)}</a>${r.status==="open"?`<button data-done="${r.id}">Mark recovered</button>`:""}</div></div>`;
+}
+const contactHref=c=>/@/.test(c)?"mailto:"+c:"tel:"+String(c||"").replace(/[^\d+]/g,"");
+
+function statusView(){
+  const list=reports.filter(r=>filter==="all"||r.kind===filter||(filter==="done"&&r.status==="recovered")).filter(r=>filter==="done"?r.status==="recovered":r.status==="open"||filter==="all");
+  return `<button class="back" data-go="home">← Back</button><h2>Status</h2>
+  <div class="seg">${[["all","All"],["lost","Lost"],["found","Found"],["done","Recovered"]].map(([k,t])=>`<button class="chip ${filter===k?"on":""}" data-f="${k}">${t}</button>`).join("")}</div>
+  ${list.length?list.map(r=>card(r,true)).join(""):`<div class="empty">Nothing here yet.<br>Post a lost or found item to get started.</div>`}`;
+}
+
+function render(){
+  $("#app").innerHTML=view==="home"?home():view==="status"?statusView():formView(view);
+  window.scrollTo(0,0);
+}
+function go(v){if(v==="lost"||v==="found")form={};view=v;render()}
+function keep(){["type","name","colour","desc","place","when","contact"].forEach(k=>{const e=$("#"+k);if(e)form[k]=e.value})}
+
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.go)return go(t.dataset.go);
+  if(t.dataset.f){filter=t.dataset.f;return render()}
+  if(t.dataset.done){await patch(t.dataset.done,{status:"recovered"});return toast("Marked as recovered 🎉")}
+  if(t.dataset.place){$("#place").value=t.dataset.place;return}
+  if(t.id==="gps"||t.id==="shareLoc"){
+    if(!navigator.geolocation)return toast("Location isn't available on this device");
+    navigator.geolocation.getCurrentPosition(async p=>{
+      const url=`https://maps.google.com/?q=${p.coords.latitude.toFixed(5)},${p.coords.longitude.toFixed(5)}`;
+      if(t.id==="gps"){$("#place").value="GPS: "+p.coords.latitude.toFixed(4)+", "+p.coords.longitude.toFixed(4);return}
+      try{if(navigator.share){await navigator.share({title:"My location on campus",text:"I'm here (Back2U):",url});return}}catch(_){return}
+      try{await navigator.clipboard.writeText(url);toast("Location link copied")}catch(_){toast(url)}
+    },()=>toast("Couldn't get your location — check permissions"),{enableHighAccuracy:true,timeout:10000});
+    return;
+  }
+  if(t.id==="submit"){
+    keep();const f=form;
+    if(!f.type||!f.name?.trim()||!f.contact?.trim())return toast("Please add item type, name and contact");
+    const r={kind:view,type:f.type,name:f.name.trim(),colour:(f.colour||"").trim(),desc:(f.desc||"").trim(),place:(f.place||"").trim(),when:f.when||new Date().toISOString(),contact:f.contact.trim(),img:f.img||""};
+    t.disabled=true;await add(r);
+    const k=view;form={};filter="all";view="status";render();
+    toast(k==="lost"?"Lost item posted. We'll look for matches.":"Found item posted. Thank you!");
+  }
+});
+document.addEventListener("change",async e=>{
+  if(e.target.id==="img"&&e.target.files[0]){keep();try{form.img=await shrink(e.target.files[0]);render()}catch(_){toast("Couldn't read that image")}}
+});
+
+/* boot: works offline with local data, upgrades to shared data when available */
+reports=local();render();
+(async()=>{try{
+  const c=window.claude&&await claude.use("db");if(!c)return;
+  db=c;
+  db.collection("reports").orderBy("ts","desc").limit(200).onSnapshot(s=>{reports=s.docs.map(d=>d.data());if(view==="home"||view==="status")render()},()=>{db=null});
+}catch(e){db=null}})();
+</script>
+</body>
+</html>
