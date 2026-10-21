@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Back2U – CIT Lost &amp; Found</title>
 <style>
-:root{--bg:#f4f7f2;--card:#fff;--ink:#1d2a1f;--mut:#5d6b60;--line:#d9e2d6;--g:#2e7d32;--gs:#e3f2e1;--lost:#6a3fb5;--lost-s:#ece4fa;--found:#1769aa;--found-s:#dfeefa;--warn:#b45309;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root{--bg:#f4f7f2;--card:#fff;--ink:#1d2a1f;--mut:#5d6b60;--line:#d9e2d6;--g:#2e7d32;--gs:#e3f2e1;--lost:#6a3fb5;--lost-s:#ece4fa;--found:#1769aa;--found-s:#dfeefa;--warn:#b45309}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#121a14;--card:#1b261e;--ink:#e8f0e9;--mut:#9db0a0;--line:#2c3b2f;--g:#6fcf75;--gs:#223a25;--lost:#b79af0;--lost-s:#2b2147;--found:#6bb6ee;--found-s:#14304a;--warn:#f0b04d}}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#121a14;--card:#1b261e;--ink:#e8f0e9;--mut:#9db0a0;--line:#2c3b2f;--g:#6fcf75;--gs:#223a25;--lost:#b79af0;--lost-s:#2b2147;--found:#6bb6ee;--found-s:#14304a;--warn:#f0b04d}
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .app{max-width:480px;margin:0 auto;padding:16px 16px 40px;min-height:100vh}
 header{text-align:center;padding:12px 0 18px}
 .cit{letter-spacing:.3em;font-weight:700;color:var(--mut);font-size:13px}
@@ -46,7 +45,7 @@ textarea{min-height:76px;resize:vertical}
 .pill{font-size:12px;font-weight:700;border-radius:99px;padding:1px 8px;margin-right:6px}
 .pill.lost{background:var(--lost-s);color:var(--lost)}.pill.found{background:var(--found-s);color:var(--found)}
 .match{margin-top:10px;padding:10px;background:var(--gs);border-radius:10px;font-size:14px}
-.match b{color:var(--g)}
+.match b{color:var(--g)}.ai-match{margin-top:10px;padding:10px;border:1px solid var(--g);border-radius:10px;font-size:14px}.ai-match small{display:block;color:var(--mut);margin-top:3px}
 .act{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .act a,.act button{border:2px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:9px;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer}
 .empty{text-align:center;color:var(--mut);padding:30px 10px}
@@ -62,7 +61,6 @@ const PLACES=["Classroom","Library","Canteen","Lab","Grounds","Hostel","Parking"
 let reports=[],view="home",filter="all",db=null,form={},toastT;
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const local=()=>{try{return JSON.parse(localStorage.getItem("b2u")||"[]")}catch(e){return[]}};
 const saveLocal=()=>{try{localStorage.setItem("b2u",JSON.stringify(reports))}catch(e){}};
 
 function toast(m){clearTimeout(toastT);document.querySelector(".toast")?.remove();const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);toastT=setTimeout(()=>t.remove(),2600)}
@@ -81,18 +79,34 @@ function score(l,f){
 const matchesFor=r=>reports.filter(o=>o.status==="open"&&o.kind!==r.kind&&(r.kind==="lost"?score(r,o):score(o,r))>=55)
   .map(o=>({o,s:r.kind==="lost"?score(r,o):score(o,r)})).sort((a,b)=>b.s-a.s);
 
-function shrink(file){return new Promise((res,rej)=>{const im=new Image(),u=URL.createObjectURL(file);
-  im.onload=()=>{const k=Math.min(1,320/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=im.width*k;c.height=im.height*k;
-  c.getContext("2d").drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL("image/jpeg",.6))};im.onerror=rej;im.src=u})}
+function shrink(file){return new Promise((res,rej)=>{
+  const im=new Image(),u=URL.createObjectURL(file);
+  im.onload=()=>{
+    try{
+      const k=Math.min(1,640/Math.max(im.width,im.height));
+      const c=document.createElement("canvas");
+      c.width=Math.max(1,Math.round(im.width*k));c.height=Math.max(1,Math.round(im.height*k));
+      const ctx=c.getContext("2d");
+      if(!ctx)throw new Error("Canvas is unavailable");
+      ctx.drawImage(im,0,0,c.width,c.height);
+      res(c.toDataURL("image/jpeg",.72));
+    }catch(err){rej(err)}
+    finally{URL.revokeObjectURL(u)}
+  };
+  im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("Image could not be loaded"))};
+  im.src=u;
+})}
 
 async function add(r){
-  r.id="r"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);r.ts=Date.now();r.status="open";
-  if(db){try{await db.collection("reports").doc(r.id).set(r);return}catch(e){}}
-  reports.unshift(r);saveLocal();render();
+  r.ts=Date.now();r.status="open";
+  const response=await fetch("/api/reports",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(r)});
+  if(!response.ok)throw new Error("Could not save report");
+  const saved=await response.json();reports.unshift(saved);saveLocal();render();
 }
 async function patch(id,d){
-  if(db){try{await db.collection("reports").doc(id).update(d);return}catch(e){}}
-  const r=reports.find(x=>x.id===id);if(r)Object.assign(r,d);saveLocal();render();
+  const response=await fetch(`/api/reports/${encodeURIComponent(id)}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(d)});
+  if(!response.ok){toast("Could not update report. Please try again.");return}
+  const updated=await response.json();const i=reports.findIndex(x=>x.id===id);if(i>=0)reports[i]=updated;saveLocal();render();
 }
 
 function home(){
@@ -126,18 +140,30 @@ function formView(kind){
 
 function card(r,showMatch){
   const m=showMatch&&r.status==="open"?matchesFor(r):[];
+  const ai=showMatch&&r.status==="open"&&Array.isArray(r.ai_matches)?r.ai_matches.map(x=>({...x,o:reports.find(y=>y.id===x.id)})).filter(x=>x.o&&x.o.status==="open"&&x.o.kind!==r.kind):[];
   const d=new Date(r.when||r.ts).toLocaleString([],{dateStyle:"medium",timeStyle:"short"});
-  const mine=m.length?`<div class="match">✨ <b>${m.length} possible match${m.length>1?"es":""}</b>${m.slice(0,3).map(x=>`<div style="margin-top:6px">${x.s}% · <b>${esc(x.o.name)}</b> (${x.o.kind}) at ${esc(x.o.place||"unknown")} — <a href="${esc(contactHref(x.o.contact))}" style="color:inherit">${esc(x.o.contact)}</a></div>`).join("")}</div>`:"";
+  const mine=m.length?`<div class="match">✨ <b>${m.length} possible text-based match${m.length>1?"es":""}</b>${m.slice(0,3).map(x=>`<div style="margin-top:6px">${x.s}% · <b>${esc(x.o.name)}</b> (${x.o.kind}) at ${esc(x.o.place||"unknown")} — <a href="${esc(contactHref(x.o.contact))}" style="color:inherit">${esc(x.o.contact)}</a></div>`).join("")}</div>`:"";
+  const aiMine=ai.length?`<div class="ai-match">🤖 <b>Gemini Flash image matches</b>${ai.slice(0,3).map(x=>`<div style="margin-top:7px"><b>${x.score}/100 relevance · ${esc(x.o.name)}</b> (${x.o.kind}) at ${esc(x.o.place||"unknown")}<small>${esc(x.reason||"Image and report details appear compatible. This is only a suggestion; verify ownership.")}</small><a href="${esc(contactHref(x.o.contact))}" style="color:inherit;display:inline-block;margin-top:4px">Contact ${esc(x.o.contact)}</a></div>`).join("")}<small>AI suggestions can be wrong. Verify distinctive details before returning an item.</small></div>`:"";
   return `<div class="card ${r.kind} ${r.status==="recovered"?"done":""}">
   <div class="top">${r.img?`<img src="${r.img}" alt="">`:""}<div><h3><span class="pill ${r.kind}">${r.kind.toUpperCase()}</span>${esc(r.name)}</h3>
   <div class="meta">${esc(r.type)}${r.colour?" · "+esc(r.colour):""}${r.place?" · 📍 "+esc(r.place):""}<br>${d}${r.status==="recovered"?" · ✅ Recovered":""}</div></div></div>
-  ${r.desc?`<p style="margin:8px 0 0;font-size:14px">${esc(r.desc)}</p>`:""}${mine}
+  ${r.desc?`<p style="margin:8px 0 0;font-size:14px">${esc(r.desc)}</p>`:""}${aiMine}${mine}
   <div class="act"><a href="${esc(contactHref(r.contact))}">Contact ${esc(r.contact)}</a>${r.status==="open"?`<button data-done="${r.id}">Mark recovered</button>`:""}</div></div>`;
 }
-const contactHref=c=>/@/.test(c)?"mailto:"+c:"tel:"+String(c||"").replace(/[^\d+]/g,"");
+const contactHref=c=>{
+  const value=String(c||"").trim();
+  if(!value)return "#";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    ?"mailto:"+encodeURIComponent(value).replace(/%40/g,"@")
+    :"tel:"+value.replace(/[^\d+]/g,"");
+};
 
 function statusView(){
-  const list=reports.filter(r=>filter==="all"||r.kind===filter||(filter==="done"&&r.status==="recovered")).filter(r=>filter==="done"?r.status==="recovered":r.status==="open"||filter==="all");
+  const list=reports.filter(r=>{
+    if(filter==="done") return r.status==="recovered";
+    if(filter==="all") return true;
+    return r.kind===filter && r.status==="open";
+  });
   return `<button class="back" data-go="home">← Back</button><h2>Status</h2>
   <div class="seg">${[["all","All"],["lost","Lost"],["found","Found"],["done","Recovered"]].map(([k,t])=>`<button class="chip ${filter===k?"on":""}" data-f="${k}">${t}</button>`).join("")}</div>
   ${list.length?list.map(r=>card(r,true)).join(""):`<div class="empty">Nothing here yet.<br>Post a lost or found item to get started.</div>`}`;
@@ -170,22 +196,18 @@ document.addEventListener("click",async e=>{
     keep();const f=form;
     if(!f.type||!f.name?.trim()||!f.contact?.trim())return toast("Please add item type, name and contact");
     const r={kind:view,type:f.type,name:f.name.trim(),colour:(f.colour||"").trim(),desc:(f.desc||"").trim(),place:(f.place||"").trim(),when:f.when||new Date().toISOString(),contact:f.contact.trim(),img:f.img||""};
-    t.disabled=true;await add(r);
-    const k=view;form={};filter="all";view="status";render();
-    toast(k==="lost"?"Lost item posted. We'll look for matches.":"Found item posted. Thank you!");
+    t.disabled=true;
+    try{await add(r);const k=view;const saved=reports[0];const aiCount=Array.isArray(saved?.ai_matches)?saved.ai_matches.length:0;form={};filter="all";view="status";render();toast(aiCount?`Report posted — Gemini found ${aiCount} possible image match${aiCount===1?"":"es"}.`:k==="lost"?"Lost item posted. We'll look for matches.":"Found item posted. Thank you!")}
+    catch(err){console.error(err);t.disabled=false;toast("Could not save report. Check your connection and try again.")}
   }
 });
 document.addEventListener("change",async e=>{
   if(e.target.id==="img"&&e.target.files[0]){keep();try{form.img=await shrink(e.target.files[0]);render()}catch(_){toast("Couldn't read that image")}}
 });
 
-/* boot: works offline with local data, upgrades to shared data when available */
-reports=local();render();
-(async()=>{try{
-  const c=window.claude&&await claude.use("db");if(!c)return;
-  db=c;
-  db.collection("reports").orderBy("ts","desc").limit(200).onSnapshot(s=>{reports=s.docs.map(d=>d.data());if(view==="home"||view==="status")render()},()=>{db=null});
-}catch(e){db=null}})();
+/* Load shared reports from the Python backend. */
+render();
+(async()=>{try{const response=await fetch("/api/reports");if(!response.ok)throw new Error("API unavailable");reports=await response.json();saveLocal();if(view==="home"||view==="status")render()}catch(e){console.error(e);reports=[];render();toast("Could not load reports from the server")}})();
 </script>
 </body>
 </html>
